@@ -38,7 +38,7 @@ const App = () => {
 
     const formData = new FormData();
     if (selectedFile) {
-      formData.append("file", selectedFile); // 👈 matches backend now
+      formData.append("image", selectedFile); // 👈 matches backend now
     } else {
       formData.append("imageUrl", imageUrl);
     }
@@ -70,7 +70,7 @@ const App = () => {
         setError(`⚠️ ${response.data.error}`);
       }
     } catch (err) {
-      setError("❌ An unexpected error occurred. Please try again.");
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

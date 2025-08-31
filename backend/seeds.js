@@ -42,7 +42,7 @@ mongoose
     "mongodb+srv://ishitamodi542_db_user:ishita2301@cluster542.novafqb.mongodb.net/products"
   )
   .then(async () => {
-    console.log("✅ MongoDB Connected");
+    console.log("MongoDB Connected");
     await Product.deleteMany();
 
     const products = [];
@@ -68,7 +68,7 @@ mongoose
 
     await Product.insertMany(products);
 
-    console.log("✅ 50 Products Seeded with Real Images");
+    console.log("50 Products Seeded with Real Images");
     mongoose.connection.close();
   })
-  .catch((err) => console.error("❌ Error seeding DB:", err));
+  .catch((err) => console.error("Error seeding DB:", err));
