@@ -1,89 +1,120 @@
-
-Project: 
 Visual Product Matcher
+Overview
 
-Overview:
-The Visual Product Matcher is a web application designed to help users find visually similar products by uploading an image. The application fulfills the technical assessment project requirements for the Software Engineer position at Unthinkable Solutions.
+The Visual Product Matcher is a full-stack MERN application that helps users discover visually similar products by uploading an image or entering an image URL. This project fulfills the technical assessment requirements for the Software Engineer position at Unthinkable Solutions.
 
-The application is built using the 
-MERN stack (MongoDB, Express, React, Node.js) and integrates a Python-based service to leverage the CLIP (Contrastive Language-Image Pre-Training) model from OpenAI for image-text matching. This approach allows the system to identify products that are visually similar to the uploaded image.
+The system allows users to:
 
-Required Features
+Upload an image (file or URL)
 
-Image Upload: The application supports both file upload and image URL input.
+View the uploaded image instantly
 
-Search Interface: Users can view the uploaded image and a list of similar products. The results can be filtered by a similarity score.
+Get predicted product categories with similarity scores
 
-Product Database: The system includes a minimum of 50 products, each with an image and basic metadata such as name and category.
+Browse similar products (fetched from a seeded database of 50+ items)
 
-Hosting: The application is deployed live on a free hosting service.
+Filter results dynamically with a similarity slider
 
-Mobile Responsiveness: The design is mobile-responsive to ensure a consistent user experience across devices.
+The app is deployed on free hosting services and designed to be mobile-responsive for a consistent user experience.
 
-Technical Details
+Features
 
-Code Quality: The code is clean and production-quality with basic error handling and loading states for an improved user experience.
+Image Upload: Supports both file upload and image URL input.
 
-Documentation: This README provides simple documentation explaining the project's approach.
+Search Interface: Displays the uploaded image, predictions, and matched products.
 
-Technical Freedom: The project was developed with a flexible tech stack and uses a free-tier AI/ML service, as permitted by the assignment. Test data was collected from public sources.
+Filter: Users can refine results using a similarity score slider.
 
-Deliverables
-This repository contains the source code and README file for the project. A brief write-up of the approach (under 200 words) is also included. The working application can be found at the provided URL.
+Product Database: Includes 50 seeded products with images (sourced via Unsplash) and metadata (name, description, price, tags).
 
-Technologies Used
-Frontend
-React.js: For building the user interface.
-Axios: For making API requests.
-CSS (or SCSS): For styling.
-Backend
-Node.js & Express.js: For the backend server.
-Multer: Middleware for handling file uploads.
-CORS: To enable cross-origin resource sharing.
-Python: To run the CLIP model.
-Google Cloud Storage: For storing uploaded images.
-Child Process: For running Python scripts from Node.js.
-Machine Learning
-CLIP: A deep learning model for zero-shot image recognition and image-text matching.
-How to Run the Application
-1. Clone the repository
+Hosting: Deployed on free hosting platforms (Frontend: Vercel/Netlify, Backend: Render).
 
-Bash
+Mobile Responsiveness: Works seamlessly across devices.
 
+Error Handling & Loading States: Enhances UX with clear messages and progress indicators.
+
+Tech Stack
+Frontend:
+
+React.js – UI development
+
+Axios – API requests
+
+CSS – Styling and responsiveness
+
+Backend:
+
+Node.js + Express.js – REST API server
+
+Multer – File upload handling
+
+CORS – Cross-origin requests
+
+MongoDB Atlas + Mongoose – Product database
+
+Static File Serving – To display uploaded images
+
+Database (Seeded)
+
+50+ products generated with realistic metadata
+
+Product images from Unsplash (https://source.unsplash.com)
+
+Each product includes:
+
+Name
+
+Description
+
+Price
+
+Tags (category + department)
+
+Image URL
+
+📂 Project Setup
+1. Clone Repository
 git clone <repository_url>
 cd <repository_name>
+
 2. Backend Setup
-Navigate to the /backend directory.
-
-Bash
-
 cd backend
-Install Python dependencies in a virtual environment.
-
-Bash
-
-python3 -m venv venv
-source venv/bin/activate
-pip install torch torchvision ftfy regex tqdm
-pip install git+https://github.com/openai/CLIP.git
-Install Node.js dependencies and run the server.
-
-Bash
-
 npm install
 node server.js
-The backend server will run on http://localhost:5000.
 
-3. Frontend Setup
-Open a new terminal and navigate to the /frontend directory.
 
-Bash
+The backend will run on http://localhost:5000.
 
+3. Seed Database
+node seeds.js
+
+
+This will insert 50 products with images and tags into MongoDB.
+
+4. Frontend Setup
 cd frontend
-Install dependencies and start the React development server.
-
-Bash
-
 npm install
 npm run dev
-The application will be available at http://localhost:5173.
+
+
+The frontend will run on http://localhost:5173.
+
+Deliverables
+
+Working Application URL (Frontend + Backend live)
+
+GitHub Repository with source code and README
+
+Brief Approach Write-up (200 words) included
+
+Approach (200 words)
+
+The Visual Product Matcher is a MERN-based application designed to simulate a real-world product discovery system. Users can upload an image or paste an image URL, and the system returns predicted categories along with a curated list of similar products.
+
+The backend uses Express.js and Multer for handling image uploads, while MongoDB serves as the product database. A seeding script generates 50 products with realistic metadata and images from Unsplash, ensuring that the database always has rich sample data. Each product is tagged with categories and departments for effective matching.
+
+On the frontend, React.js provides a responsive and interactive user experience. Predictions are displayed with confidence scores, and users can refine their search using a similarity slider. The uploaded image and matched products are rendered dynamically for instant feedback.
+
+The system includes error handling (e.g., missing file/URL) and loading states for a smoother user experience. Both frontend and backend are deployed on free hosting platforms (Vercel/Netlify + Render).
+
+This project meets all assignment requirements: image upload, 50+ products, search interface, filtering, responsive design, error handling, clean code, and documentation.
