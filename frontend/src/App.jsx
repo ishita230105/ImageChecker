@@ -1,55 +1,101 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import axios from "axios";
 import "./App.css";
 
 const App = () => {
+  // State variables for managing file/URL input, app status, and results
   const [selectedFile, setSelectedFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
   const [uploadedImage, setUploadedImage] = useState(null);
   const [clipPredictions, setClipPredictions] = useState([]);
   const [similarProducts, setSimilarProducts] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [similarityFilter, setSimilarityFilter] = useState(50);
 
+  // Handlers for file and URL input changes
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
+    setImageUrl(''); // Clear URL input if a file is selected
   };
 
+  const handleUrlChange = (event) => {
+    setImageUrl(event.target.value);
+    setSelectedFile(null); // Clear file input if a URL is entered
+  };
+
+  // Main function to handle the image upload and matching process
   const handleUpload = async () => {
-    if (!selectedFile) {
-      setError("⚠️ Please select a file to upload.");
+    if (!selectedFile && !imageUrl) {
+      setError("⚠️ Please select a file or enter an image URL.");
       return;
     }
 
+    // Reset state for a new search
     setError(null);
     setLoading(true);
+    setUploadedImage(null);
+    setClipPredictions([]);
+    setSimilarProducts([]);
 
     const formData = new FormData();
-    formData.append("file", selectedFile);
+    if (selectedFile) {
+      formData.append("file", selectedFile);
+    } else {
+      formData.append("imageUrl", imageUrl);
+    }
 
     try {
+      // API call to the backend
+      // IMPORTANT: Update this URL after deploying your backend
       const response = await axios.post("http://localhost:5000/api/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       setUploadedImage(response.data.uploaded_image);
       setClipPredictions(response.data.clip_predictions || []);
-      setSimilarProducts(response.data.similar_products || []);
+
+      // Combine predictions with products to retain the similarity score for filtering
+      const predictionsMap = new Map((response.data.clip_predictions || []).map(p => [p.label, p.score]));
+      const productsWithScores = (response.data.similar_products || []).map(product => {
+        const primaryTag = product.tags[0];
+        return {
+          ...product,
+          score: predictionsMap.get(primaryTag) || 0
+        };
+      });
+      setSimilarProducts(productsWithScores);
+
+      if (response.data.error) {
+        setError(`⚠️ ${response.data.error}`);
+      }
     } catch (err) {
-      console.error(err);
-      setError("❌ Error processing the image. Please try again.");
+      setError("❌ An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Memoize the filtered results to avoid re-calculating on every render
+  const filteredProducts = useMemo(() => {
+    return similarProducts.filter(product => (product.score * 100) >= similarityFilter);
+  }, [similarProducts, similarityFilter]);
+
   return (
+    // JSX for rendering the UI
     <div className="app">
       <h1>Visual Product Matcher</h1>
-
       <div className="upload-section">
         <input type="file" onChange={handleFileChange} />
+        <p>OR</p>
+        <input
+            type="text"
+            placeholder="Enter Image URL"
+            value={imageUrl}
+            onChange={handleUrlChange}
+        />
         <button onClick={handleUpload} disabled={loading}>
-          {loading ? "Uploading..." : "Upload & Match Products"}
+          {loading ? "Processing..." : "Upload & Match Products"}
         </button>
         {error && <p className="error">{error}</p>}
       </div>
@@ -76,12 +122,25 @@ const App = () => {
             <p>No predictions found.</p>
           )}
 
-          <h2>Matched Products (from MongoDB):</h2>
-          {similarProducts.length > 0 ? (
+          <h2>Matched Products:</h2>
+          <div className="filter-section">
+            <label htmlFor="similarity">Minimum Similarity: {similarityFilter}%</label>
+            <input
+              type="range"
+              id="similarity"
+              min="0"
+              max="100"
+              value={similarityFilter}
+              onChange={(e) => setSimilarityFilter(Number(e.target.value))}
+            />
+          </div>
+
+          {filteredProducts.length > 0 ? (
             <div className="product-list">
-              {similarProducts.map((product, index) => (
+              {filteredProducts.map((product, index) => (
                 <div key={index} className="product-card">
                   <h3>{product.name}</h3>
+                  <p>Similarity: <strong>{(product.score * 100).toFixed(2)}%</strong></p>
                   <p>{product.description}</p>
                   <p>₹{product.price}</p>
                   <img src={product.image} alt={product.name} width="100" />
@@ -89,7 +148,7 @@ const App = () => {
               ))}
             </div>
           ) : (
-            <p>No matching products in database.</p>
+            <p>No matching products found with the current filter setting.</p>
           )}
         </div>
       )}

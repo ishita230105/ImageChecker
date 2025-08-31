@@ -11,13 +11,15 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
 def get_clip_predictions(image_path):
-    # Preprocess the image
     image = preprocess(Image.open(image_path)).unsqueeze(0).to(device)
 
-    # Define candidate text labels (extend this list as needed)
+    # ✅ EXPANDED LIST of candidate text labels
     text = [
-        "sneakers", "shoes", "shirt", "jeans", "t-shirt",
-        "jacket", "computer", "phone", "bag", "product"
+        "shoe", "sneaker", "boot", "shirt", "t-shirt", "jeans", "pants",
+        "jacket", "coat", "sweater", "hat", "bag", "backpack",
+        "watch", "laptop", "computer", "phone", "keyboard", "mouse",
+        "headphones", "camera", "television", "chair", "table", "sofa",
+        "book", "car", "bicycle", "toy", "bottle", "cup"
     ]
     text_inputs = clip.tokenize(text).to(device)
 
@@ -25,15 +27,12 @@ def get_clip_predictions(image_path):
         image_features = model.encode_image(image)
         text_features = model.encode_text(text_inputs)
 
-    # Normalize
     image_features /= image_features.norm(dim=-1, keepdim=True)
     text_features /= text_features.norm(dim=-1, keepdim=True)
 
-    # Similarity
     similarity = (100.0 * image_features @ text_features.T).softmax(dim=-1)
-    values, indices = similarity[0].topk(3)  # Top 3
+    values, indices = similarity[0].topk(5) # Get top 5 predictions
 
-    # Collect results
     predictions = [
         {"label": text[idx], "score": float(values[i].item())}
         for i, idx in enumerate(indices)
@@ -41,17 +40,15 @@ def get_clip_predictions(image_path):
 
     return predictions
 
-
-# ✅ Run when script is called from Node.js
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print(json.dumps([]))   # return empty list if no path
+        print(json.dumps([]))
         sys.exit(1)
 
     image_path = sys.argv[1]
     try:
         results = get_clip_predictions(image_path)
-        print(json.dumps(results))   # ✅ only one JSON print
+        print(json.dumps(results))
         sys.stdout.flush()
     except Exception as e:
         print(json.dumps({"error": str(e)}))
