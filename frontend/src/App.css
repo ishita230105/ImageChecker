@@ -1,0 +1,98 @@
+/* Main App Container */
+.app {
+  text-align: center;
+  border: 2px solid #965468;
+  border-radius: 12px;
+  padding: 2%;
+  background-color: peachpuff;
+  font-family: Arial, sans-serif;
+}
+
+/* Upload Section */
+.upload-section {
+  border: 2px solid white;
+  margin: 20px auto;
+  border-radius: 0.5rem;
+  background-color: rgb(173, 118, 118);
+  padding: 15px;
+  width: 60%;
+  color: white;
+}
+
+.upload-section input[type="file"] {
+  margin: 20px;
+}
+
+.upload-section button {
+  background-color: #fff;
+  color: #965468;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.upload-section button:hover {
+  background-color: #f8e1e1;
+}
+
+/* Result Section */
+.result-section {
+  margin-top: 20px;
+}
+
+.uploaded-image {
+  width: 300px;
+  height: auto;
+  margin: 15px 0;
+  border-radius: 10px;
+  border: 2px solid #965468;
+}
+
+/* Product List */
+.product-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+/* Individual Product Card */
+.product-card {
+  background: #fff;
+  border: 2px solid #965468;
+  border-radius: 10px;
+  width: 200px;
+  padding: 12px;
+  text-align: center;
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.product-card:hover {
+  transform: scale(1.05);
+  background-color: #fdf1f1;
+}
+
+.product-img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+/* Error Message */
+.error {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* Slider Filter */
+input[type="range"] {
+  width: 60%;
+  margin: 10px 0;
+}
