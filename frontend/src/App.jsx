@@ -48,9 +48,11 @@ const App = () => {
     try {
       // API call to the backend
       // IMPORTANT: Update this URL after deploying your backend
-      const response = await axios.post("https://image-checker-api.onrender.com/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const API_BASE = "https://image-checker-api.onrender.com"; // or http://localhost:5000 in dev
+      const response = await axios.post(`${API_BASE}/api/upload`, formData, {
+      headers: { "Content-Type": "multipart/form-data" }, 
+    });
+
 
       setUploadedImage(response.data.uploaded_image);
       setClipPredictions(response.data.clip_predictions || []);
@@ -104,10 +106,11 @@ const App = () => {
         <div className="result-section">
           <h2>Uploaded Image:</h2>
           <img
-            src={`http://localhost:5000/uploads/${uploadedImage}`}
+            src={`${API_BASE}/uploads/${uploadedImage}`}
             alt="Uploaded"
             className="uploaded-image"
           />
+
 
           <h2>CLIP Predictions:</h2>
           {clipPredictions.length > 0 ? (
