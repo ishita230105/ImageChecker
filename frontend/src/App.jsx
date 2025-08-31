@@ -3,6 +3,8 @@ import axios from "axios";
 import "./App.css";
 
 const App = () => {
+  const API_BASE = "https://image-checker-api.onrender.com"; // or http://localhost:5000 in dev
+
   // State variables for managing file/URL input, app status, and results
   const [selectedFile, setSelectedFile] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
@@ -46,19 +48,17 @@ const App = () => {
     }
 
     try {
-      // API call to the backend
-      // IMPORTANT: Update this URL after deploying your backend
-      const API_BASE = "https://image-checker-api.onrender.com"; // or http://localhost:5000 in dev
       const response = await axios.post(`${API_BASE}/api/upload`, formData, {
-      headers: { "Content-Type": "multipart/form-data" }, 
-    });
-
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       setUploadedImage(response.data.uploaded_image);
       setClipPredictions(response.data.clip_predictions || []);
 
       // Combine predictions with products to retain the similarity score for filtering
-      const predictionsMap = new Map((response.data.clip_predictions || []).map(p => [p.label, p.score]));
+      const predictionsMap = new Map(
+        (response.data.clip_predictions || []).map(p => [p.label, p.score])
+      );
       const productsWithScores = (response.data.similar_products || []).map(product => {
         const primaryTag = product.tags[0];
         return {
@@ -78,23 +78,22 @@ const App = () => {
     }
   };
 
-  // Memoize the filtered results to avoid re-calculating on every render
+  // Memoize the filtered results
   const filteredProducts = useMemo(() => {
     return similarProducts.filter(product => (product.score * 100) >= similarityFilter);
   }, [similarProducts, similarityFilter]);
 
   return (
-    // JSX for rendering the UI
     <div className="app">
       <h1>Visual Product Matcher</h1>
       <div className="upload-section">
         <input type="file" onChange={handleFileChange} />
         <p>OR</p>
         <input
-            type="text"
-            placeholder="Enter Image URL"
-            value={imageUrl}
-            onChange={handleUrlChange}
+          type="text"
+          placeholder="Enter Image URL"
+          value={imageUrl}
+          onChange={handleUrlChange}
         />
         <button onClick={handleUpload} disabled={loading}>
           {loading ? "Processing..." : "Upload & Match Products"}
@@ -111,7 +110,6 @@ const App = () => {
             className="uploaded-image"
           />
 
-
           <h2>CLIP Predictions:</h2>
           {clipPredictions.length > 0 ? (
             <ul>
@@ -127,7 +125,9 @@ const App = () => {
 
           <h2>Matched Products:</h2>
           <div className="filter-section">
-            <label htmlFor="similarity">Minimum Similarity: {similarityFilter}%</label>
+            <label htmlFor="similarity">
+              Minimum Similarity: {similarityFilter}%
+            </label>
             <input
               type="range"
               id="similarity"
