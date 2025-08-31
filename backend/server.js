@@ -1,122 +1,67 @@
-const express = require('express');
-const multer = require('multer');
-const { exec } = require('child_process');
-const path = require('path');
-const cors = require('cors');
-const fs = require('fs');
-const mongoose = require('mongoose');
-const Product = require('./model/product');
-const axios = require('axios'); // Make sure to require axios
+import express from "express";
+import cors from "cors";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
-// ... (keep all your existing middleware and setup code the same)
-mongoose.connect("mongodb+srv://ishitamodi542_db_user:ishita2301@cluster542.novafqb.mongodb.net/products")
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ MongoDB Error:", err));
-
-// Middleware
+// ✅ Middleware
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Multer setup
+// ✅ Make uploads folder public
+const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+app.use("/uploads", express.static(uploadDir));
+
+// ✅ Multer setup
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath);
-    }
-    cb(null, uploadPath);
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
   },
-  filename: function (req, file, cb) {
+  filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage });
+
+// ✅ Health check
+app.get("/", (req, res) => {
+  res.send("✅ API is running!");
+});
+
+// ✅ Upload endpoint
+app.post("/api/upload", upload.single("file"), (req, res) => {
+  try {
+    if (!req.file && !req.body.imageUrl) {
+      return res.status(400).json({ error: "No file or URL provided" });
+    }
+
+    let uploadedImage = null;
+
+    if (req.file) {
+      uploadedImage = req.file.filename;
+    } else if (req.body.imageUrl) {
+      // Handle URL input (basic version)
+      uploadedImage = req.body.imageUrl;
+    }
+
+    res.json({
+      uploaded_image: uploadedImage,
+      clip_predictions: [], // connect your ML model later
+      similar_products: [], // connect DB later
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-const upload = multer({ storage: storage });
-
-
-// ✅ MODIFIED Upload & Process Route
-app.post('/api/upload', upload.single('file'), async (req, res) => {
-  let uploadedFilePath;
-  let originalFilename;
-
-  if (req.file) {
-    uploadedFilePath = req.file.path;
-    originalFilename = req.file.filename;
-  } else if (req.body.imageUrl) {
-    try {
-      const response = await axios({
-        url: req.body.imageUrl,
-        responseType: 'stream'
-      });
-      originalFilename = Date.now() + '.jpg'; // Assign a default name
-      uploadedFilePath = path.join(__dirname, 'uploads', originalFilename);
-      
-      const writer = fs.createWriteStream(uploadedFilePath);
-      response.data.pipe(writer);
-
-      await new Promise((resolve, reject) => {
-        writer.on('finish', resolve);
-        writer.on('error', reject);
-      });
-
-    } catch (error) {
-      console.error('Error downloading image from URL:', error);
-      return res.status(500).json({ error: 'Failed to download image from URL.' });
-    }
-  } else {
-    return res.status(400).json({ error: 'No file or URL provided.' });
-  }
-
-  const finalPath = uploadedFilePath.replace(/\\/g, "/");
-
-  exec(`python clip_model.py "${finalPath}"`, async (error, stdout, stderr) => {
-    if (error) {
-      console.error(`exec error: ${error.message}`);
-      return res.status(500).json({
-        uploaded_image: originalFilename,
-        clip_predictions: [],
-        similar_products: [],
-        error: 'Error running the Python script.'
-      });
-    }
-    if (stderr) {
-      console.error(`Python stderr: ${stderr}`);
-    }
-
-    try {
-      const lines = stdout.trim().split('\n');
-      const lastLine = lines[lines.length - 1];
-      const predictions = JSON.parse(lastLine);
-
-      if (!Array.isArray(predictions)) {
-        throw new Error('Predictions are not in the expected format.');
-      }
-
-      const productTags = predictions.map(p => p.label.toLowerCase().split(' ')[0]);
-      const matchedProducts = await Product.find({ tags: { $in: productTags } });
-      
-      res.json({
-        uploaded_image: originalFilename,
-        clip_predictions: predictions,
-        similar_products: matchedProducts
-      });
-    } catch (e) {
-      console.error('Error parsing script output or querying DB:', e);
-      res.status(500).json({
-        uploaded_image: originalFilename,
-        clip_predictions: [],
-        similar_products: [],
-        error: 'Could not find matches, but the image was uploaded.'
-      });
-    }
-  });
-});
-
-// Start Server
+// ✅ Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
